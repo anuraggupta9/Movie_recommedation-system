@@ -3,21 +3,21 @@ import pickle
 import pandas as pd
 import requests
 import os
+import gdown
 
-# ================= DOWNLOAD FILES IF NOT PRESENT =================
+# ================= DOWNLOAD FILES FROM GOOGLE DRIVE =================
 
-MOVIES_URL = "https://drive.google.com/uc?id=1ylBnpIdM-OMx1_f4hN6xFfCSc4VyLbpY"
-SIMILARITY_URL = "https://drive.google.com/uc?id=1ma4lY4NEyK9JiLVE3wOSTNGluIGO1SR9"
+MOVIES_ID = "1ylBnpIdM-OMx1_f4hN6xFfCSc4VyLbpY"
+SIMILARITY_ID = "1ma4lY4NEyK9JiLVE3wOSTNGluIGO1SR9"
 
-def download_file(url, filename):
-    if not os.path.exists(filename):
-        with st.spinner(f"Downloading {filename}..."):
-            response = requests.get(url)
-            with open(filename, "wb") as f:
-                f.write(response.content)
+def download_from_drive(file_id, output):
+    if not os.path.exists(output):
+        with st.spinner(f"Downloading {output}..."):
+            url = f"https://drive.google.com/uc?id={file_id}"
+            gdown.download(url, output, quiet=False)
 
-download_file(MOVIES_URL, "movies.pkl")
-download_file(SIMILARITY_URL, "similarity.pkl")
+download_from_drive(MOVIES_ID, "movies.pkl")
+download_from_drive(SIMILARITY_ID, "similarity.pkl")
 
 # ================= LOAD DATA =================
 
@@ -33,9 +33,11 @@ def fetch_poster(movie_id):
         f"https://api.themoviedb.org/3/movie/{movie_id}?api_key={TMDB_API_KEY}"
     )
     data = response.json()
-    if data.get("poster_path"):
-        return "https://image.tmdb.org/t/p/w500" + data["poster_path"]
-    return "https://via.placeholder.com/500x750?text=No+Image"
+    return (
+        "https://image.tmdb.org/t/p/w500" + data["poster_path"]
+        if data.get("poster_path")
+        else "https://via.placeholder.com/500x750?text=No+Image"
+    )
 
 # ================= RECOMMENDER =================
 
